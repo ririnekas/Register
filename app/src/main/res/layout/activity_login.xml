@@ -7,21 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="16dp"
-    tools:context=".RegisterActivity">
-
-    <!-- Input for Username -->
-    <EditText
-        android:id="@+id/usernameEditText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Username"
-        android:autofillHints="username"
-        android:inputType="text"
-        android:padding="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="200dp" />
+    tools:context=".LoginActivity">
 
     <!-- Input for Email -->
     <EditText
@@ -34,8 +20,8 @@
         android:padding="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/usernameEditText"
-        android:layout_marginTop="16dp"/>
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="200dp"  />
 
     <!-- Input for Password -->
     <EditText
@@ -51,18 +37,7 @@
         app:layout_constraintTop_toBottomOf="@+id/emailEditText"
         android:layout_marginTop="16dp"/>
 
-    <!-- Register Button -->
-
-    <Button
-        android:id="@+id/registerButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Register"
-        android:padding="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/passwordEditText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="32dp"/>
+    <!-- Login Button -->
 
     <Button
         android:id="@+id/loginButton"
@@ -70,7 +45,7 @@
         android:layout_height="wrap_content"
         android:text="Login"
         android:padding="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/registerButton"
+        app:layout_constraintTop_toBottomOf="@+id/passwordEditText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="32dp"/>
@@ -79,7 +54,7 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Register"
+        android:text="Login"
         android:textSize="30sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

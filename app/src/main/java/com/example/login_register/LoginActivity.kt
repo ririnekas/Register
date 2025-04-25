@@ -2,14 +2,13 @@ package com.example.login_register
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
-import android.view.View
 import android.widget.EditText
 import android.widget.Button
 import android.widget.Toast
-import androidx.appcompat.widget.Toolbar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.drawerlayout.widget.DrawerLayout
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
@@ -19,54 +18,50 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
 
-class RegisterActivity : AppCompatActivity() {
+
+class LoginActivity : AppCompatActivity() {
 
     //View components
-    private lateinit var usernameEditText: EditText
     private lateinit var emailEditText: EditText
     private lateinit var passwordEditText: EditText
-    private lateinit var registerButton: Button
     private lateinit var loginButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_register)
+        setContentView(R.layout.activity_login)
 
         //Initialize views
-        usernameEditText = findViewById(R.id.usernameEditText)
         emailEditText = findViewById(R.id.emailEditText)
         passwordEditText = findViewById(R.id.passwordEditText)
-        registerButton = findViewById(R.id.registerButton)
         loginButton = findViewById(R.id.loginButton)
 
-        //Set click listener for register button
-        registerButton.setOnClickListener{
-            registerUser()
-        }
-
-        //Ketika di klik dari RegisterActivity pindah ke LoginActivity
+        //Ktika diketik akan login
         loginButton.setOnClickListener{
-            val intent = Intent(this@RegisterActivity, LoginActivity::class.java)
-            startActivity(intent)
-            finish()
+            registerUser()
         }
     }
 
     //Data class for User
     data class User(
-        val full_name: String,
         val email: String,
         val password: String
     )
 
-    //Data class for User Response
+    //Data respon
     data class UserResponse(
-        val message: String
+        val message: String,
+        val accessToken: String,
+        val refreshToken: String,
+        val data: Data
+    )
+
+    data class Data(
+        val role: String
     )
 
     //Api Service Interface
     interface ApiService{
-        @POST("register")
+        @POST("login")
         fun registerUser(@Body user: User): Call<UserResponse>
     }
 
@@ -74,58 +69,65 @@ class RegisterActivity : AppCompatActivity() {
     private fun registerUser(){
         try {
             //Get data from EditText
-            val full_name = usernameEditText.text.toString()
             val email = emailEditText.text.toString()
             val password = passwordEditText.text.toString()
 
             //Validasi Input
-            if(full_name.isEmpty()|| email.isEmpty() || password.isEmpty()){
+            if(email.isEmpty() || password.isEmpty()){
                 Toast.makeText(this, "Pleas fill all fields", Toast.LENGTH_SHORT).show()
                 return
             }
 
             //Buat User Object
-            val user = User(full_name, email, password)
+            val user = User(email, password)
 
             //Creat Retrofit instance
             val retrofit = Retrofit.Builder()
-                .baseUrl("http://192.168.111.43:5000/api/")
+                .baseUrl("http://192.168.111.43:5000/api/") //IP diganti sesuai WIFI kita
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
 
-            val apiService = retrofit.create(ApiService::class.java)
+            val apiService = retrofit.create(ApiService::class.java) //Manggil dari Api service
 
+            //Pemanggilan API
             val call = apiService.registerUser(user)
             call.enqueue(object : Callback<UserResponse>{
                 override fun onResponse(call: Call<UserResponse>, response: Response<UserResponse>) {
                     if (response.isSuccessful){
                         val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
                         val editor = sharedPreferences.edit()
-                        editor.putString("username", full_name)
-                        editor.putString("role", "user")
+                        val role =  response.body()?.data?.role
+                        val accessToken = response.body()?.accessToken
+                        val refreshToken = response.body()?.refreshToken
+
+                        editor.putString("username", email) //logika selamat datang email
+                        editor.putString("role", role)
+                        editor.putString("accessToken", accessToken)
+                        editor.putString("refreshToken", refreshToken)
                         editor.apply()
 
-                        val serverMessage = response.body()?.message ?: "Registrasi Berhasil"
-                        //Registration successful, navigate to MainActivity
-                        Toast.makeText(this@RegisterActivity, serverMessage, Toast.LENGTH_SHORT).show()
+                        //Operator pengganti pesan success
+                        val serverMessage = response.body()?.message ?: "Login Berhasil"
 
-                        //pindah halaman
-                        val intent = Intent(this@RegisterActivity, MainActivity::class.java)
+                        //Registration successful, navigate to MainActivity
+                        Toast.makeText(this@LoginActivity, serverMessage, Toast.LENGTH_SHORT).show()
+
+                        //Start MainActivity
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
                         startActivity(intent)
                         finish() //optionali close the RegisterActivity
                     } else {
-                        val errorMessage = response.errorBody()?.string()?: "Resgistrasi Gagal"
+                        val errorMessage = response.errorBody()?.string()?: "Login Gagal"
                         val jsonError = JSONObject(errorMessage)
                         val serverMessage = jsonError.getString("message")
-
                         //show error from the server if registration failed
-                        Toast.makeText(this@RegisterActivity, serverMessage, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@LoginActivity, serverMessage, Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<UserResponse>, t: Throwable){
                     //show error message if network request fails
-                    Toast.makeText(this@RegisterActivity, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
                     Log.e("RegisterActivity", "Error: ${t.message}", t) //Log Error
                 }
             })
@@ -135,4 +137,5 @@ class RegisterActivity : AppCompatActivity() {
             Log.e("RegisterActivity","Exeception: ${e.message}",e)
         }
     }
+
 }
